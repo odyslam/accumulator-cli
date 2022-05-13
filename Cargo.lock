@@ -33,9 +33,11 @@ name = "accumulator-cli"
 version = "0.1.0"
 dependencies = [
  "accumulator",
+ "anyhow",
  "clap",
  "ethers 0.6.2",
  "primitive-types 0.11.1",
+ "rustc-hex",
 ]
 
 [[package]]
