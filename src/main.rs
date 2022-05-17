@@ -25,9 +25,10 @@ fn main() {
     let mut tree: Tree<32> = Default::default();
     tree.ingest(hash(args.message)).unwrap();
     let proof = tree.prove(0).unwrap();
-    let leaf: String = proof.leaf.to_string();
+    let leaf = proof.leaf.to_fixed_bytes();
     let index: U256 = proof.index.into();
-    let encoded = (leaf, index).encode().to_hex::<String>();
-    println!("{}", encoded);
+    let path = proof.path.map(|hash| hash.to_fixed_bytes());
+    let encoded = (leaf, index, path).encode().to_hex::<String>();
+    println!("{encoded}");
 }
 
