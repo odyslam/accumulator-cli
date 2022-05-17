@@ -36,6 +36,7 @@ dependencies = [
  "clap",
  "ethers 0.6.2",
  "primitive-types 0.11.1",
+ "rustc-hex",
 ]
 
 [[package]]
