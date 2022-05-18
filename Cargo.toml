@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 
-accumulator = { git = "https://github.com/nomad-xyz/rust" }
+accumulator = { version = "0.1.0",  git = "https://github.com/nomad-xyz/rust" }
 primitive-types = "0.11.1"
 ethers = "0.6.2"
 clap = { version = "3.1.18", features = ["derive"] }
