@@ -1,12 +1,12 @@
 use accumulator::{utils::hash, Merkle, MerkleProof, NomadTree};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use ethers::abi::{AbiEncode};
+use ethers::abi::AbiEncode;
 use ethers::types::*;
 use rustc_hex::ToHex;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
+#[clap(version, about)]
 struct Args {
     #[clap(short, long)]
     /// The string to be added to the tree. Multiple can be supplied
@@ -25,11 +25,12 @@ fn main() -> Result<()> {
     // Insert the message to the tree
     let messages = args.message;
     let mut tree = NomadTree::default();
-    if messages.len() == 0 {
+    if messages.is_empty() {
         return Err(anyhow!("You need to supply at least a message to be inserted in the tree\nType accumulator-cli -h for help"));
     }
     for message in &messages {
-        tree.ingest(hash(message)).context(format!("Accumulator can't ingest {}", message))?;
+        tree.ingest(hash(message))
+            .context(format!("Accumulator can't ingest {}", message))?;
     }
     // Calculate the Proof struct for the message at index 0
     let index = args.index;

@@ -2,10 +2,116 @@
 
 It's a cli version of the [Nomad Accumulator](https://github.com/nomad-xyz/rust/tree/main/accumulator).
 
-It's very limited, as it's primarily used in our Forge testing suite via the [-ffi](https://book.getfoundry.sh/forge/differential-ffi-testing.html) cheatcode.
 
-In essence, we generate proofs via the rust binary for arbitrary inputs and then feed these proofs in the solidity code to be verified. This  simulates the way our off-chain agents generate proofs and then submit them to the smart contracts.
+## Installation
 
+```
+git clone https://github.com/odyslam/accumulator-cli
+cd accumulator-cli
+cargo build --release
+```
+
+## Usage
+
+```
+./target/release/accumulator-cli -h
+accumulator-cli 0.1.0
+A cli wrapper around Nomad Accumulator, a library for Sparse Merkle Trees
+
+USAGE:
+    accumulator-cli [OPTIONS] --index <INDEX>
+
+OPTIONS:
+    -d, --debug                Print Debug information
+    -h, --help                 Print help information
+    -i, --index <INDEX>        The index of the leaf for which the proof is generated
+    -m, --message <MESSAGE>    The string to be added to the tree. Multiple can be supplied
+    -V, --version              Print version information
+Time: 0h:00m:01s
+```
+### Input
+
+Input as many string messages as you want to be added to the tree. You can request the proof for any **existing** leaf based on it's index.
+
+e.g if you add two messages, you can request proofs for index 0 and 1.
+
+Messages are passed via the option `-m`: `accumulato-cli -m message_one -m message_two` etc.
+
+### Output
+
+The output is an `abi-encoded` hex string:
+
+- Abi-encoding: `(bytes32, bytes32, uint256, bytes32[32]`
+- Variables:    `(root, leaf, index, path)`
+
+The output is perfectly formatted to be used in our Forge testing suite via the [-ffi](https://book.getfoundry.sh/forge/differential-ffi-testing.html) cheatcode.
+
+In essence, we generate proofs via the rust binary for arbitrary inputs and then feed these proofs in the solidity code to be verified. This simulates the way the Nomad off-chain agents generate proofs and then submit them to the smart contracts.
+
+### Insert two strings, get proof output for "one"
+
+```
+./target/release/accumulator-cli -m "one" -m "two" -i 0
+641b124588b588f4eff94e07db4b90a37321e7d2550644b952d82b908a9f509923dc111d7c3ad1df9806ce1e8eb4f55f57dba117339c545e7593d1f6c3b026620000000000000000000000000000000000000000000000000000000000000000332c39dcd398ea34a48b871898d589f55fc4c7bce00562fb670c972e7e1b0720ad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5b4c11951957c6f8f642c4af61cd6b24640fec6dc7fc607ee8206a99e92410d3021ddb9a356815c3fac1026b6dec5df3124afbadb485c9ba5a3e3398a04b7ba85e58769b32a1beaf1ea27375a44095a0d1fb664ce2dd358e7fcbfb78c26a193440eb01ebfc9ed27500cd4dfc979272d1f0913cc9f66540d7e8005811109e1cf2d887c22bd8750d34016ac3c66b5ff102dacdd73f6b014e710b51e8022af9a1968ffd70157e48063fc33c97a050f7f640233bf646cc98d9524c6b92bcf3ab56f839867cc5f7f196b93bae1e27e6320742445d290f2263827498b54fec539f756afcefad4e508c098b9a7e1d8feb19955fb02ba9675585078710969d3440f5054e0f9dc3e7fe016e050eff260334f18a5d4fe391d82092319f5964f2e2eb7c1c3a5f8b13a49e282f609c317a833fb8d976d11517c571d1221a265d25af778ecf8923490c6ceeb450aecdc82e28293031d10c7d73bf85e57bf041a97360aa2c5d99cc1df82d9c4b87413eae2ef048f94b4d3554cea73d92b0f7af96e0271c691e2bb5c67add7c6caf302256adedf7ab114da0acfe870d449a3a489f781d659e8beccda7bce9f4e8618b6bd2f4132ce798cdc7a60e7e1460a7299e3c6342a579626d22733e50f526ec2fa19a22b31e8ed50f23cd1fdf94c9154ed3a7609a2f1ff981fe1d3b5c807b281e4683cc6d6315cf95b9ade8641defcb32372f1c126e398ef7a5a2dce0a8a7f68bb74560f8f71837c2c2ebbcbf7fffb42ae1896f13f7c7479a0b46a28b6f55540f89444f63de0378e3d121be09e06cc9ded1c20e65876d36aa0c65e9645644786b620e2dd2ad648ddfcbf4a7e5b1a3a4ecfe7f64667a3f0b7e2f4418588ed35a2458cffeb39b93d26f18d2ab13bdce6aee58e7b99359ec2dfd95a9c16dc00d6ef18b7933a6f8dc65ccb55667138776f7dea101070dc8796e3774df84f40ae0c8229d0d6069e5c8f39a7c299677a09d367fc7b05e3bc380ee652cdc72595f74c7b1043d0e1ffbab734648c838dfb0527d971b602bc216c9619ef0abf5ac974a1ed57f4050aa510dd9c74f508277b39d7973bb2dfccc5eeb0618db8cd74046ff337f0a7bf2c8e03e10f642c1886798d71806ab1e888d9e5ee87d0838c5655cb21c6cb83313b5a631175dff4963772cce9108188b34ac87c81c41e662ee4dd2dd7b2bc707961b1e646c4047669dcb6584f0d8d770daf5d7e7deb2e388ab20e2573d171a88108e79d820e98f26c0b84aa8b2f4aa4968dbb818ea32293237c50ba75ee485f4c22adf2f741400bdf8d6a9cc7df7ecae576221665d7358448818bb4ae4562849e949e17ac16e0be16688e156b5cf15e098c627c0056a9
+```
+
+### Insert two strings, get debug output for "one"
+
+```
+
+//////////////////////////////////////////////////////////////
+                           DEBUG INFO
+//////////////////////////////////////////////////////////////
+
+🌴TREE
+Messages: ["one", "two"]
+Root: 641b124588b588f4eff94e07db4b90a37321e7d2550644b952d82b908a9f5099
+
+PROOF
+Requested Leaf: 23dc111d7c3ad1df9806ce1e8eb4f55f57dba117339c545e7593d1f6c3b02662
+Requested Index: 0
+Path:
+00: 332c39dcd398ea34a48b871898d589f55fc4c7bce00562fb670c972e7e1b0720
+01: ad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5
+02: b4c11951957c6f8f642c4af61cd6b24640fec6dc7fc607ee8206a99e92410d30
+03: 21ddb9a356815c3fac1026b6dec5df3124afbadb485c9ba5a3e3398a04b7ba85
+04: e58769b32a1beaf1ea27375a44095a0d1fb664ce2dd358e7fcbfb78c26a19344
+05: 0eb01ebfc9ed27500cd4dfc979272d1f0913cc9f66540d7e8005811109e1cf2d
+06: 887c22bd8750d34016ac3c66b5ff102dacdd73f6b014e710b51e8022af9a1968
+07: ffd70157e48063fc33c97a050f7f640233bf646cc98d9524c6b92bcf3ab56f83
+08: 9867cc5f7f196b93bae1e27e6320742445d290f2263827498b54fec539f756af
+09: cefad4e508c098b9a7e1d8feb19955fb02ba9675585078710969d3440f5054e0
+10: f9dc3e7fe016e050eff260334f18a5d4fe391d82092319f5964f2e2eb7c1c3a5
+11: f8b13a49e282f609c317a833fb8d976d11517c571d1221a265d25af778ecf892
+12: 3490c6ceeb450aecdc82e28293031d10c7d73bf85e57bf041a97360aa2c5d99c
+13: c1df82d9c4b87413eae2ef048f94b4d3554cea73d92b0f7af96e0271c691e2bb
+14: 5c67add7c6caf302256adedf7ab114da0acfe870d449a3a489f781d659e8becc
+15: da7bce9f4e8618b6bd2f4132ce798cdc7a60e7e1460a7299e3c6342a579626d2
+16: 2733e50f526ec2fa19a22b31e8ed50f23cd1fdf94c9154ed3a7609a2f1ff981f
+17: e1d3b5c807b281e4683cc6d6315cf95b9ade8641defcb32372f1c126e398ef7a
+18: 5a2dce0a8a7f68bb74560f8f71837c2c2ebbcbf7fffb42ae1896f13f7c7479a0
+19: b46a28b6f55540f89444f63de0378e3d121be09e06cc9ded1c20e65876d36aa0
+20: c65e9645644786b620e2dd2ad648ddfcbf4a7e5b1a3a4ecfe7f64667a3f0b7e2
+21: f4418588ed35a2458cffeb39b93d26f18d2ab13bdce6aee58e7b99359ec2dfd9
+22: 5a9c16dc00d6ef18b7933a6f8dc65ccb55667138776f7dea101070dc8796e377
+23: 4df84f40ae0c8229d0d6069e5c8f39a7c299677a09d367fc7b05e3bc380ee652
+24: cdc72595f74c7b1043d0e1ffbab734648c838dfb0527d971b602bc216c9619ef
+25: 0abf5ac974a1ed57f4050aa510dd9c74f508277b39d7973bb2dfccc5eeb0618d
+26: b8cd74046ff337f0a7bf2c8e03e10f642c1886798d71806ab1e888d9e5ee87d0
+27: 838c5655cb21c6cb83313b5a631175dff4963772cce9108188b34ac87c81c41e
+28: 662ee4dd2dd7b2bc707961b1e646c4047669dcb6584f0d8d770daf5d7e7deb2e
+29: 388ab20e2573d171a88108e79d820e98f26c0b84aa8b2f4aa4968dbb818ea322
+30: 93237c50ba75ee485f4c22adf2f741400bdf8d6a9cc7df7ecae576221665d735
+31: 8448818bb4ae4562849e949e17ac16e0be16688e156b5cf15e098c627c0056a9
+
+
+//////////////////////////////////////////////////////////////
+                       ABI-ENCODED OUTPUT
+//////////////////////////////////////////////////////////////
+
+641b124588b588f4eff94e07db4b90a37321e7d2550644b952d82b908a9f509923dc111d7c3ad1df9806ce1e8eb4f55f57dba117339c545e7593d1f6c3b026620000000000000000000000000000000000000000000000000000000000000000332c39dcd398ea34a48b871898d589f55fc4c7bce00562fb670c972e7e1b0720ad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5b4c11951957c6f8f642c4af61cd6b24640fec6dc7fc607ee8206a99e92410d3021ddb9a356815c3fac1026b6dec5df3124afbadb485c9ba5a3e3398a04b7ba85e58769b32a1beaf1ea27375a44095a0d1fb664ce2dd358e7fcbfb78c26a193440eb01ebfc9ed27500cd4dfc979272d1f0913cc9f66540d7e8005811109e1cf2d887c22bd8750d34016ac3c66b5ff102dacdd73f6b014e710b51e8022af9a1968ffd70157e48063fc33c97a050f7f640233bf646cc98d9524c6b92bcf3ab56f839867cc5f7f196b93bae1e27e6320742445d290f2263827498b54fec539f756afcefad4e508c098b9a7e1d8feb19955fb02ba9675585078710969d3440f5054e0f9dc3e7fe016e050eff260334f18a5d4fe391d82092319f5964f2e2eb7c1c3a5f8b13a49e282f609c317a833fb8d976d11517c571d1221a265d25af778ecf8923490c6ceeb450aecdc82e28293031d10c7d73bf85e57bf041a97360aa2c5d99cc1df82d9c4b87413eae2ef048f94b4d3554cea73d92b0f7af96e0271c691e2bb5c67add7c6caf302256adedf7ab114da0acfe870d449a3a489f781d659e8beccda7bce9f4e8618b6bd2f4132ce798cdc7a60e7e1460a7299e3c6342a579626d22733e50f526ec2fa19a22b31e8ed50f23cd1fdf94c9154ed3a7609a2f1ff981fe1d3b5c807b281e4683cc6d6315cf95b9ade8641defcb32372f1c126e398ef7a5a2dce0a8a7f68bb74560f8f71837c2c2ebbcbf7fffb42ae1896f13f7c7479a0b46a28b6f55540f89444f63de0378e3d121be09e06cc9ded1c20e65876d36aa0c65e9645644786b620e2dd2ad648ddfcbf4a7e5b1a3a4ecfe7f64667a3f0b7e2f4418588ed35a2458cffeb39b93d26f18d2ab13bdce6aee58e7b99359ec2dfd95a9c16dc00d6ef18b7933a6f8dc65ccb55667138776f7dea101070dc8796e3774df84f40ae0c8229d0d6069e5c8f39a7c299677a09d367fc7b05e3bc380ee652cdc72595f74c7b1043d0e1ffbab734648c838dfb0527d971b602bc216c9619ef0abf5ac974a1ed57f4050aa510dd9c74f508277b39d7973bb2dfccc5eeb0618db8cd74046ff337f0a7bf2c8e03e10f642c1886798d71806ab1e888d9e5ee87d0838c5655cb21c6cb83313b5a631175dff4963772cce9108188b34ac87c81c41e662ee4dd2dd7b2bc707961b1e646c4047669dcb6584f0d8d770daf5d7e7deb2e388ab20e2573d171a88108e79d820e98f26c0b84aa8b2f4aa4968dbb818ea32293237c50ba75ee485f4c22adf2f741400bdf8d6a9cc7df7ecae576221665d7358448818bb4ae4562849e949e17ac16e0be16688e156b5cf15e098c627c0056a9
+
+```
 
 ## License
 
