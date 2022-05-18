@@ -15,3 +15,4 @@ primitive-types = "0.11.1"
 ethers = "0.6.2"
 clap = { version = "3.1.18", features = ["derive"] }
 rustc-hex = "2.1.0"
+anyhow = "1.0.57"
