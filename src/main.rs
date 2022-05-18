@@ -1,4 +1,4 @@
-use accumulator::{utils::hash, Merkle, MerkleProof, Tree};
+use accumulator::{utils::hash, Merkle, MerkleProof, NomadTree};
 use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use ethers::abi::{AbiEncode};
@@ -22,9 +22,9 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
     // Create a Sparse Merkle Tree with depth 32
-    let mut tree: Tree<32> = Default::default();
     // Insert the message to the tree
     let messages = args.message;
+    let mut tree = NomadTree::default();
     if messages.len() == 0 {
         return Err(anyhow!("You need to supply at least a message to be inserted in the tree\nType accumulator-cli -h for help"));
     }
