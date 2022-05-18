@@ -1,18 +1,21 @@
-use accumulator::{utils::hash, Merkle, MerkleProof, Proof, Tree};
-use anyhow::{Context, Result};
+use accumulator::{utils::hash, Merkle, MerkleProof, Tree};
+use anyhow::{Context, Result, anyhow};
 use clap::Parser;
-use ethers::abi::{encode, AbiEncode};
+use ethers::abi::{AbiEncode};
 use ethers::types::*;
 use rustc_hex::ToHex;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about)]
 struct Args {
     #[clap(short, long)]
+    /// The string to be added to the tree. Multiple can be supplied
     message: Vec<String>,
     #[clap(short, long)]
+    /// The index of the leaf for which the proof is generated
     index: usize,
     #[clap(short, long)]
+    /// Print Debug information
     debug: bool,
 }
 
@@ -22,7 +25,9 @@ fn main() -> Result<()> {
     let mut tree: Tree<32> = Default::default();
     // Insert the message to the tree
     let messages = args.message;
-    println!("{:?}", messages);
+    if messages.len() == 0 {
+        return Err(anyhow!("You need to supply at least a message to be inserted in the tree\nType accumulator-cli -h for help"));
+    }
     for message in &messages {
         tree.ingest(hash(message)).context(format!("Accumulator can't ingest {}", message))?;
     }
@@ -54,7 +59,7 @@ fn main() -> Result<()> {
 "#
         );
         println!(
-            "🌴TREE\nMessages: {:?}\nRoot: {}\n\n🔍PROOF\nRequested Leaf: {}\nRequested Index: {}\nPath: \n{}",
+            "🌴TREE\nMessages: {:?}\nRoot: {}\n\nPROOF\nRequested Leaf: {}\nRequested Index: {}\nPath: \n{}",
             messages,
             root.to_hex::<String>(),
             leaf.to_hex::<String>(),
