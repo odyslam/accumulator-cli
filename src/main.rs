@@ -91,6 +91,7 @@ fn main() -> Result<()> {
 "#
         );
     }
-    println!("{encoded}");
+    // Foundry --ffi expects output without a newline character at the end
+    print!("{encoded}");
     Ok(())
 }
