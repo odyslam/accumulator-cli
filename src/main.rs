@@ -32,11 +32,15 @@ fn main() -> Result<()> {
     if messages.is_empty() {
         return Err(anyhow!("You need to supply at least a message to be inserted in the tree\nType accumulator-cli -h for help"));
     }
-    for message in &messages {
+    for mut message in messages.clone() {
         let hashed_message = if args.raw {
+            if message.starts_with("0x") {
+                message.remove(0);
+                message.remove(0);
+            }
             H256::from_slice(&message.from_hex::<Vec<u8>>().unwrap())
         } else {
-            hash(message)
+            hash(&message)
         };
         tree.ingest(hashed_message)
             .context(format!("Accumulator can't ingest {}", message))?;
