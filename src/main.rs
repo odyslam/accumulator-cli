@@ -19,7 +19,7 @@ struct Args {
     /// Print Debug information
     debug: bool,
     #[clap(short, long)]
-    /// 
+    /// The supplied messages are already hashed; Ingest them without hashing them.
     raw: bool,
 }
 
