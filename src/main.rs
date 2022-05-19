@@ -2,8 +2,9 @@ use accumulator::{utils::hash, Merkle, MerkleProof, NomadTree};
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use ethers::abi::AbiEncode;
-use ethers::types::*;
-use rustc_hex::ToHex;
+use ethers::core::types::*;
+use primitive_types::H256;
+use rustc_hex::{ToHex, FromHex};
 
 #[derive(Parser, Debug)]
 #[clap(version, about)]
@@ -17,6 +18,9 @@ struct Args {
     #[clap(short, long)]
     /// Print Debug information
     debug: bool,
+    #[clap(short, long)]
+    /// The supplied messages are already hashed; Ingest them without hashing them.
+    raw: bool,
 }
 
 fn main() -> Result<()> {
@@ -28,8 +32,17 @@ fn main() -> Result<()> {
     if messages.is_empty() {
         return Err(anyhow!("You need to supply at least a message to be inserted in the tree\nType accumulator-cli -h for help"));
     }
-    for message in &messages {
-        tree.ingest(hash(message))
+    for mut message in messages.clone() {
+        let hashed_message = if args.raw {
+            if message.starts_with("0x") {
+                message.remove(0);
+                message.remove(0);
+            }
+            H256::from_slice(&message.from_hex::<Vec<u8>>().unwrap())
+        } else {
+            hash(&message)
+        };
+        tree.ingest(hashed_message)
             .context(format!("Accumulator can't ingest {}", message))?;
     }
     // Calculate the Proof struct for the message at index 0
@@ -60,14 +73,14 @@ fn main() -> Result<()> {
 "#
         );
         println!(
-            "🌴TREE\nMessages: {:?}\nRoot: {}\n\nPROOF\nRequested Leaf: {}\nRequested Index: {}\nPath: \n{}",
+            "🌴TREE\nMessages: {:?}\nRoot: 0x{}\n\nPROOF\nRequested Leaf: 0x{}\nRequested Index: {}\nPath: \n{}",
             messages,
             root.to_hex::<String>(),
             leaf.to_hex::<String>(),
             index,
             path.into_iter()
                 .enumerate()
-                .map(|(i, x)| format!("{:02}: {}\n", i, x.to_hex::<String>()))
+                .map(|(i, x)| format!("{:02}: 0x{}\n", i, x.to_hex::<String>()))
                 .collect::<String>()
         );
         println!(
